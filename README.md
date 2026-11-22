@@ -7,6 +7,7 @@ Personal Claude Code plugin marketplace.
 | Plugin | Contents |
 |---|---|
 | [`git`](plugins/git) | Skills: `commit`, `push`, `pull`, `sync`, `pr` |
+| [`dag`](plugins/dag) | Planning DAG in `.claude-dag/`: CLI + web UI (M1; skills/MCP in progress, not in the marketplace yet) |
 
 ## Install
 

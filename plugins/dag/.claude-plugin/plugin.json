@@ -1,0 +1,8 @@
+{
+  "name": "dag",
+  "version": "0.1.0",
+  "description": "Planning DAG for long-running work: milestones, dependencies, verify checks, web UI",
+  "author": {
+    "name": "VincentNguyenDuc"
+  }
+}
