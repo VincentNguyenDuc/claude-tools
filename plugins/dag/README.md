@@ -22,6 +22,8 @@ start creates a virtualenv inside the plugin directory, which takes a few second
 | `/dag:next [id \| n]` | Pick a ready node: mark it active, do the work, run verify, record the Result, mark it done or failed. |
 | `/dag:replan [why]` | After a failure or a change of scope: add, split, re-link or drop nodes and log the reason. |
 | `/dag:status` | Progress, what's next, what's stuck. Can open the web UI. |
+| `/dag:validate` | Check the graph for missing references, bad fields and cycles, and suggest fixes. |
+| `/dag:ui` | Open the web UI in the browser (runs while the session is running). |
 | MCP tools | `dag_summary`, `dag_list`, `dag_show`, `dag_ready`, `dag_add`, `dag_add_many`, `dag_update`, `dag_append`, `dag_link`, `dag_unlink`, `dag_remove`, `dag_verify`, `dag_log`, `dag_validate`, `dag_init`, `dag_open_ui` |
 | SessionStart hook | In projects that have a `.claude-dag/`, adds a short plan summary to the session context. Does nothing in other projects. |
 
