@@ -56,3 +56,14 @@ def test_edit_deps_and_rename(tmp_path, capsys):
 def test_no_dag_dir(tmp_path, capsys):
     code, _, err = run(tmp_path, capsys, "list")
     assert code == 2 and "claude-dag init" in err
+
+
+def test_import_and_append(tmp_path, capsys):
+    run(tmp_path, capsys, "init", str(tmp_path))
+    plan = tmp_path / "plan.yaml"
+    plan.write_text("- {title: Later, id: later, deps: [first]}\n- {title: First, id: first}\n")
+    code, out, _ = run(tmp_path, capsys, "import", str(plan))
+    assert code == 0 and "added 2 nodes: later, first" in out
+    assert run(tmp_path, capsys, "append", "first", "it worked")[0] == 0
+    _, out, _ = run(tmp_path, capsys, "show", "first", "--json")
+    assert json.loads(out)["body"].endswith("## Result\nit worked\n")

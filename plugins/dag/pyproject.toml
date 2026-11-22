@@ -1,13 +1,17 @@
 [project]
 name = "claude-dag"
-version = "0.1.0"
-description = "File-backed planning DAG (.claude-dag/) with a CLI and local web UI"
+version = "0.2.0"
+description = "File-backed planning DAG (.claude-dag/) with a CLI, local web UI and MCP server"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["pyyaml>=6"]
+dependencies = [
+    "mcp>=2.3,<3",
+    "pyyaml>=6",
+]
 
 [project.scripts]
 claude-dag = "claude_dag.cli:main"
+claude-dag-mcp = "claude_dag.mcp_server:main"
 
 [dependency-groups]
 dev = ["pytest>=8"]

@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import heapq
 import os
+import re
 import subprocess
 import tempfile
 from collections import Counter
@@ -28,6 +29,7 @@ DIR_NAME = ".claude-dag"
 NODES_DIR = "nodes"
 LOG_FILE = "log.md"
 EDITABLE = frozenset({"title", "kind", "status", "deps", "milestone", "verify", "body"})
+ADD_FIELDS = EDITABLE | {"id"}
 
 
 def find_dag_dir(start: Path | None = None) -> Path | None:
@@ -226,7 +228,13 @@ class Graph:
                     result = "done"
                 elif "failed" in dep_states:
                     result = "failed"
-                elif any(s in ("done", "active") for s in dep_states):
+                elif "active" in dep_states or any(
+                    # A finished prerequisite (e.g. the previous milestone) is not
+                    # progress on this one; only finished members are.
+                    evaluate(m) == "done"
+                    for m in (self.members(node_id) or node.deps)
+                    if m in self.nodes
+                ):
                     result = "active"
                 else:
                     result = "todo"
@@ -303,44 +311,88 @@ class Graph:
         for node in changed:
             _atomic_write(self.path_for(node.id), node.to_markdown())
 
-    def _unique_id(self, base: str) -> str:
+    def _unique_id(self, base: str, taken: set[str] | None = None) -> str:
+        taken = set(self.nodes) if taken is None else taken
         candidate, n = base, 2
-        while candidate in self.nodes:
+        while candidate in taken:
             candidate = f"{base}-{n}"
             n += 1
         return candidate
 
-    def add(
-        self,
-        title: str,
-        *,
-        id: str | None = None,
-        kind: str = "task",
-        status: str = "todo",
-        deps: Any = (),
-        milestone: str | None = None,
-        verify: str | None = None,
-        body: str | None = None,
-    ) -> Node:
-        title = (title or "").strip()
-        if not title:
-            raise DagError("a node needs a title")
-        node_id = opt_str(id) or self._unique_id(slugify(title))
-        if node_id in self.nodes:
-            raise DagError(f"node {node_id!r} already exists")
-        node = Node(
+    @staticmethod
+    def _build(spec: dict[str, Any], node_id: str) -> Node:
+        unknown = set(spec) - ADD_FIELDS
+        if unknown:
+            raise DagError(f"unknown field(s): {', '.join(sorted(unknown))}")
+        body = spec.get("body")
+        return Node(
             id=node_id,
-            title=title,
-            kind=(kind or "task").strip().lower(),
-            status=norm_status(status),
-            deps=as_id_list(deps),
-            milestone=opt_str(milestone),
-            verify=opt_str(verify),
+            title=str(spec.get("title") or "").strip(),
+            kind=str(spec.get("kind") or "task").strip().lower(),
+            status=norm_status(spec.get("status")),
+            deps=as_id_list(spec.get("deps")),
+            milestone=opt_str(spec.get("milestone")),
+            verify=opt_str(spec.get("verify")),
             body=DEFAULT_BODY if body is None else str(body),
         )
-        self._check_refs(node)
+
+    def add(self, title: str, **fields: Any) -> Node:
+        """Add one node. Fields: id, kind, status, deps, milestone, verify, body."""
+        return self.add_many([{**fields, "title": title}])[0]
+
+    def add_many(self, specs: list[dict[str, Any]]) -> list[Node]:
+        """Add several nodes atomically; they may reference each other in any order."""
+        if not specs:
+            raise DagError("no nodes given")
+        taken = set(self.nodes)
+        new: list[Node] = []
+        for spec in specs:
+            if not isinstance(spec, dict):
+                raise DagError(f"expected a node object, got {spec!r}")
+            title = str(spec.get("title") or "").strip()
+            if not title:
+                raise DagError("every node needs a title")
+            node_id = opt_str(spec.get("id")) or self._unique_id(slugify(title), taken)
+            if node_id in taken:
+                raise DagError(f"node {node_id!r} already exists")
+            taken.add(node_id)
+            new.append(self._build(spec, node_id))
+        kinds = {**{i: n.kind for i, n in self.nodes.items()}, **{n.id: n.kind for n in new}}
+        for node in new:
+            missing = [d for d in node.deps if d not in kinds]
+            if missing:
+                raise DagError(f"{node.id}: unknown deps: {', '.join(missing)}")
+            if node.milestone and node.milestone != node.id:
+                if node.milestone not in kinds:
+                    raise DagError(f"{node.id}: unknown milestone {node.milestone!r}")
+                if kinds[node.milestone] != "milestone":
+                    raise DagError(f"{node.id}: {node.milestone!r} is a {kinds[node.milestone]}, not a milestone")
+        self._commit(new)
+        for node in new:
+            self.log(f"added `{node.id}` ({node.kind}): {node.title}")
+        return new
+
+    def append(self, node_id: str, text: str, section: str = "Result") -> Node:
+        """Append text to a `## <section>` of the node's body (created if missing)."""
+        node = self.get(node_id).copy()
+        text = (text or "").strip("\n")
+        if not text.strip():
+            raise DagError("nothing to append")
+        section = section.strip() or "Result"
+        lines = node.body.split("\n")
+        header = re.compile(rf"^##\s+{re.escape(section)}\s*$", re.I)
+        start = next((i for i, line in enumerate(lines) if header.match(line)), None)
+        if start is None:
+            node.body = f"{node.body.rstrip()}\n\n## {section}\n{text}\n".lstrip("\n")
+        else:
+            end = next((j for j in range(start + 1, len(lines)) if lines[j].startswith("## ")), len(lines))
+            last = end
+            while last > start + 1 and not lines[last - 1].strip():
+                last -= 1
+            gap = [""] if last > start + 1 else []
+            tail = ([""] + lines[end:]) if end < len(lines) else []
+            node.body = "\n".join(lines[:last] + gap + [text] + tail).rstrip("\n") + "\n"
         self._commit([node])
-        self.log(f"added `{node.id}` ({node.kind}): {node.title}")
         return node
 
     def update(self, node_id: str, **fields: Any) -> Node:

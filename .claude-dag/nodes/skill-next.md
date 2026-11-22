@@ -2,9 +2,10 @@
 id: skill-next
 title: 'Skill: /dag:next (do ready nodes, verify, update)'
 kind: task
-status: todo
+status: done
 deps: [mcp-server]
 milestone: m2-claude-loop
+verify: claude plugin validate plugins/dag
 ---
 
 ## Goal / acceptance
@@ -14,3 +15,4 @@ milestone: m2-claude-loop
 
 
 ## Result
+skills/next/SKILL.md: claim, load context, do the work, verify, record, report. Parallel subagents only when the user asks; only the main agent edits the graph.

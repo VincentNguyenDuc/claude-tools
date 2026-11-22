@@ -7,6 +7,8 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 from .graph import DIR_NAME, Graph, git_toplevel
 from .model import KINDS, STATUSES, DagError
 
@@ -86,6 +88,26 @@ def cmd_edit(args):
         raise DagError("nothing to change (see `claude-dag edit --help`)")
     node = graph.update(args.id, **fields)
     print(f"updated {node.id}")
+
+
+def cmd_append(args):
+    text = sys.stdin.read() if args.text == "-" else args.text
+    _graph(args).append(args.id, text, args.section)
+    print(f"appended to {args.id} ## {args.section}")
+
+
+def cmd_import(args):
+    raw = sys.stdin.read() if args.file == "-" else Path(args.file).read_text(encoding="utf-8")
+    try:
+        specs = yaml.safe_load(raw)
+    except yaml.YAMLError as exc:
+        raise DagError(f"bad YAML/JSON: {exc}") from None
+    if isinstance(specs, dict):
+        specs = specs.get("nodes")
+    if not isinstance(specs, list):
+        raise DagError("expected a list of nodes (or {nodes: [...]})")
+    added = _graph(args).add_many(specs)
+    print(f"added {len(added)} nodes: {', '.join(n.id for n in added)}")
 
 
 def cmd_rm(args):
@@ -242,6 +264,14 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--body")
     sp.add_argument("--body-file")
     sp.add_argument("--rename", metavar="NEW_ID", help="rename the node and update references")
+
+    sp = cmd("append", cmd_append, "append markdown to a section of a node's body")
+    sp.add_argument("id")
+    sp.add_argument("text", help="markdown text ('-' for stdin)")
+    sp.add_argument("--section", default="Result")
+
+    sp = cmd("import", cmd_import, "add many nodes at once from YAML/JSON (all or nothing)")
+    sp.add_argument("file", help="file with a list of {title, id?, kind?, deps?, ...} ('-' for stdin)")
 
     sp = cmd("rm", cmd_rm, "remove a node")
     sp.add_argument("id")

@@ -7,7 +7,7 @@ Personal Claude Code plugin marketplace.
 | Plugin | Contents |
 |---|---|
 | [`git`](plugins/git) | Skills: `commit`, `push`, `pull`, `sync`, `pr` |
-| [`dag`](plugins/dag) | Planning DAG in `.claude-dag/`: CLI + web UI (M1; skills/MCP in progress, not in the marketplace yet) |
+| [`dag`](plugins/dag) | Planning DAG in `.claude-dag/`. Skills: `plan`, `next`, `replan`, `status`. Also MCP tools, a SessionStart hook, a CLI and a web UI |
 
 ## Install
 
@@ -16,6 +16,7 @@ Once per machine:
 ```
 /plugin marketplace add VincentNguyenDuc/claude-tools
 /plugin install git@claude-tools
+/plugin install dag@claude-tools
 ```
 
 Pull updates after pushing changes here:
@@ -36,7 +37,8 @@ Add to the project's `.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "git@claude-tools": true
+    "git@claude-tools": true,
+    "dag@claude-tools": true
   }
 }
 ```

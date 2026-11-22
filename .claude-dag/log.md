@@ -18,3 +18,23 @@
 - 2026-11-21 16:25 — verify `core-cli`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q`
 - 2026-11-21 16:25 — `web-ui`: todo -> done
 - 2026-11-21 16:25 — verify `web-ui`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q`
+- 2026-11-21 16:31 — `mcp-server`: todo -> active
+- 2026-11-21 16:34 — `mcp-server`: active -> done
+- 2026-11-21 16:34 — verify `mcp-server`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_mcp.py`
+- 2026-11-21 16:34 — `skill-plan`: todo -> active
+- 2026-11-21 16:34 — `skill-next`: todo -> active
+- 2026-11-21 16:34 — `skill-replan`: todo -> active
+- 2026-11-21 16:34 — `session-hook`: todo -> active
+- 2026-11-21 16:35 — `skill-plan`: active -> done
+- 2026-11-21 16:35 — verify `skill-plan`: pass (exit 0) — `claude plugin validate plugins/dag`
+- 2026-11-21 16:35 — `skill-next`: active -> done
+- 2026-11-21 16:35 — verify `skill-next`: pass (exit 0) — `claude plugin validate plugins/dag`
+- 2026-11-21 16:35 — `skill-replan`: active -> done
+- 2026-11-21 16:35 — verify `skill-replan`: pass (exit 0) — `claude plugin validate plugins/dag`
+- 2026-11-21 16:35 — `session-hook`: active -> done
+- 2026-11-21 16:35 — verify `session-hook`: pass (exit 0) — `CLAUDE_PROJECT_DIR=$PWD bash plugins/dag/hooks/session-start.sh | grep -q 'planning DAG'`
+- 2026-11-21 16:35 — added `skill-status` (task): Skill: /dag:status
+- 2026-11-21 16:35 — `skill-status`: todo -> active
+- 2026-11-21 16:35 — `skill-status`: active -> done
+- 2026-11-21 16:35 — verify `skill-status`: pass (exit 0) — `claude plugin validate plugins/dag`
+- 2026-11-21 16:36 — M2: MCP server, 4 skills (plan/next/replan/status), SessionStart hook done; CLI gained append/import; milestone 'active' now counts only member progress

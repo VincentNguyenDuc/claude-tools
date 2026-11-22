@@ -12,6 +12,12 @@
       "source": "./plugins/git",
       "description": "Git and GitHub workflow skills: commit, push, pull, sync, pr",
       "version": "0.1.0"
+    },
+    {
+      "name": "dag",
+      "source": "./plugins/dag",
+      "description": "Planning DAG for long-running work: milestones, dependencies, verify checks; skills, MCP tools, session hook and web UI",
+      "version": "0.2.0"
     }
   ]
 }
