@@ -1,0 +1,8 @@
+{
+  "name": "dev",
+  "version": "0.1.0",
+  "description": "General development workflows: codebase analysis documents for onboarding humans and future LLM sessions",
+  "author": {
+    "name": "VincentNguyenDuc"
+  }
+}

@@ -6,9 +6,10 @@ Personal Claude Code plugin marketplace.
 
 | Plugin | Contents |
 |---|---|
-| [`git`](plugins/git) | Skills: `commit`, `push`, `pull`, `sync`, `pr` (with Git LFS checks) |
+| [`git`](plugins/git) | Skills: `commit`, `push`, `pull`, `sync`, `pr`, `merge-pr`, `issue`, `release`, `clean-branches` (with Git LFS and sparse-checkout handling) |
 | [`dag`](plugins/dag) | Planning DAG in `.claude-dag/`. Skills: `plan`, `next`, `replan`, `status`, `validate`, `ui`. Also MCP tools, a SessionStart hook, a CLI and a web UI |
 | [`kb`](plugins/kb) | Knowledge hub skills: `new-topic`, `find-canonical-papers`, `add-paper`, `paper-notes` |
+| [`dev`](plugins/dev) | Skills: `codebase-analysis` |
 
 ## Install
 
@@ -19,6 +20,7 @@ Once per machine:
 /plugin install git@claude-tools
 /plugin install dag@claude-tools
 /plugin install kb@claude-tools
+/plugin install dev@claude-tools
 ```
 
 Pull updates after pushing changes here:
@@ -41,7 +43,8 @@ Add to the project's `.claude/settings.json`:
   "enabledPlugins": {
     "git@claude-tools": true,
     "dag@claude-tools": true,
-    "kb@claude-tools": true
+    "kb@claude-tools": true,
+    "dev@claude-tools": true
   }
 }
 ```

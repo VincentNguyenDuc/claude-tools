@@ -10,8 +10,8 @@
     {
       "name": "git",
       "source": "./plugins/git",
-      "description": "Git and GitHub workflow skills: commit, push, pull, sync, pr",
-      "version": "0.2.0"
+      "description": "Git and GitHub workflow skills: commit, push, pull, sync, pr, merge-pr, issue, release, clean-branches",
+      "version": "0.3.0"
     },
     {
       "name": "dag",
@@ -23,6 +23,12 @@
       "name": "kb",
       "source": "./plugins/kb",
       "description": "Knowledge hub skills: topic folders, canonical paper reading lists, paper downloads and structured paper notes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "dev",
+      "source": "./plugins/dev",
+      "description": "General development workflows: codebase analysis documents for onboarding humans and future LLM sessions",
       "version": "0.1.0"
     }
   ]

@@ -11,6 +11,7 @@ If the project defines its own commit skill or commit rules (CLAUDE.md, CONTRIBU
    - Never stage secrets or local config: `.env*`, `*.pem`, `*.key`, `credentials*.json`, `.claude/settings.local.json`. If one is already staged, unstage it and warn.
    - Never stage OS/editor junk or build output (`.DS_Store`, `node_modules/`, `dist/`, `build/`, `__pycache__/`, sim/work dirs). If such files show as untracked, suggest a `.gitignore` entry.
    - If unrelated changes are mixed in, ask whether to split them into separate commits.
+   - **Sparse checkout.** If `git add` warns a path is outside the sparse-checkout definition, run `git sparse-checkout add <top-level dir>` and add it again. Don't use `--sparse`.
    - **Large files and Git LFS.** Warn about any file over 100 MB (GitHub rejects them). If `.gitattributes` has `filter=lfs` patterns, check every new binary (PDFs, images, archives, datasets, …) with `git check-attr filter -- <file>`; it should print `filter: lfs`. If a binary type isn't tracked, offer `git lfs track "*.<ext>"` and stage `.gitattributes` together with it.
 4. **Message.** Match the style in `git log`:
    - If the log uses Conventional Commits (`feat:`, `fix(scope):`), use them.
