@@ -2,7 +2,7 @@
 id: marketplace-entry
 title: Register dag in marketplace + install test
 kind: task
-status: todo
+status: done
 deps: [skill-plan, skill-next, session-hook, skill-replan, skill-status]
 milestone: m2-claude-loop
 verify: claude plugin validate . && claude plugin list | grep -q 'dag@claude-tools'

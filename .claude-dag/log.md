@@ -38,3 +38,19 @@
 - 2026-11-21 16:35 — `skill-status`: active -> done
 - 2026-11-21 16:35 — verify `skill-status`: pass (exit 0) — `claude plugin validate plugins/dag`
 - 2026-11-21 16:36 — M2: MCP server, 4 skills (plan/next/replan/status), SessionStart hook done; CLI gained append/import; milestone 'active' now counts only member progress
+- 2026-11-21 16:43 — `marketplace-entry`: todo -> done
+- 2026-11-21 16:43 — verify `marketplace-entry`: pass (exit 0) — `claude plugin validate . && claude plugin list | grep -q 'dag@claude-tools'`
+- 2026-11-21 16:57 — added `m3-ui-arrange` (milestone): M3: move nodes and edit safely
+- 2026-11-21 16:57 — added `ui-test-harness` (decision): Decide and set up how to test the web UI
+- 2026-11-21 16:57 — added `layout-store` (task): Save node positions in .claude-dag/layout.json
+- 2026-11-21 16:57 — added `node-drag` (task): Drag nodes to move them in the web UI
+- 2026-11-21 16:57 — added `safe-edits` (task): Conflict-safe saving from the edit panel
+- 2026-11-21 16:57 — added `release-m3` (task): Release dag 0.3.0
+- 2026-11-21 16:57 — added `m4-ui-readable` (milestone): M4: readable on bigger graphs
+- 2026-11-21 16:57 — added `node-labels` (task): Wrap node titles instead of truncating
+- 2026-11-21 16:57 — added `hover-trace` (task): Highlight a node's upstream and downstream chain
+- 2026-11-21 16:57 — added `node-search` (task): Search nodes by title or id
+- 2026-11-21 16:57 — added `body-preview` (task): Rendered markdown preview of node bodies
+- 2026-11-21 16:57 — added `milestone-groups` (task): Draw a box around each milestone's members
+- 2026-11-21 16:57 — added `release-m4` (task): Release dag 0.4.0
+- 2026-11-21 16:57 — Planned M3 (move nodes, conflict-safe edits) and M4 (readability) for the web UI; the dag is now used to develop itself. Decisions: node positions in .claude-dag/layout.json (not frontmatter or localStorage); UI testing approach is an explicit decision node (ui-test-harness, Playwright recommended since local node is broken); ui-feedback moved into M4 after M3 and gates release-m4. Ids use release-m3/release-m4 because dots aren't allowed in ids.
