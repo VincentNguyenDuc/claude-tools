@@ -16,5 +16,5 @@ This updates the current branch from **its own upstream**. To bring in the lates
      - On the default branch: stop and explain; don't create merge commits or rebase it without asking.
      - On a feature branch: `git rebase @{u}` (keeps history linear; local commits replayed on top).
 4. **Conflicts.** Stop and list conflicted files. Read both sides and resolve them together with the user's intent in mind; never blanket `--ours`/`--theirs`. After resolving: `git add <files>` and `git rebase --continue`. If it gets messy, `git rebase --abort` restores the previous state—offer that.
-5. If `.gitmodules` exists, run `git submodule update --init --recursive` afterwards.
+5. If `.gitmodules` exists, run `git submodule update --init --recursive` afterwards. If the repo uses Git LFS and incoming files are still pointer files, run `git lfs pull`.
 6. Restore any set-aside changes (step 2), then report: how many commits came in, the new `HEAD` (`git log --oneline -1`), and ahead/behind status.

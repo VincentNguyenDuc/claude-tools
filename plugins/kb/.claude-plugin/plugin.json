@@ -1,0 +1,8 @@
+{
+  "name": "kb",
+  "version": "0.1.0",
+  "description": "Knowledge hub skills: topic folders, canonical paper reading lists, paper downloads and structured paper notes",
+  "author": {
+    "name": "VincentNguyenDuc"
+  }
+}

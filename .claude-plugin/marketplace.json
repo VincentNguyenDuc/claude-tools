@@ -11,13 +11,19 @@
       "name": "git",
       "source": "./plugins/git",
       "description": "Git and GitHub workflow skills: commit, push, pull, sync, pr",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     {
       "name": "dag",
       "source": "./plugins/dag",
       "description": "Planning DAG for long-running work: milestones, dependencies, verify checks; skills, MCP tools, session hook and web UI",
       "version": "0.2.1"
+    },
+    {
+      "name": "kb",
+      "source": "./plugins/kb",
+      "description": "Knowledge hub skills: topic folders, canonical paper reading lists, paper downloads and structured paper notes",
+      "version": "0.1.0"
     }
   ]
 }
