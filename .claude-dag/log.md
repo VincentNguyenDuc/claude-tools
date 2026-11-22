@@ -67,3 +67,17 @@
 - 2026-11-21 22:35 — `node-drag`: active -> done
 - 2026-11-21 22:35 — verify `node-drag`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k drag`
 - 2026-11-21 22:35 — `release-m3`: todo -> active
+- 2026-11-21 22:40 — `release-m3`: active -> done
+- 2026-11-21 22:40 — verify `release-m3`: pass (exit 0) — `claude plugin validate . && claude plugin validate plugins/dag`
+- 2026-11-21 22:40 — `body-preview`: todo -> active
+- 2026-11-21 22:42 — `body-preview`: active -> done
+- 2026-11-21 22:42 — verify `body-preview`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k preview`
+- 2026-11-21 22:42 — `hover-trace`: todo -> active
+- 2026-11-21 22:44 — `hover-trace`: active -> done
+- 2026-11-21 22:44 — verify `hover-trace`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k trace`
+- 2026-11-21 22:44 — `node-search`: todo -> active
+- 2026-11-21 22:46 — `node-search`: active -> done
+- 2026-11-21 22:46 — verify `node-search`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k search`
+- 2026-11-21 22:46 — `node-labels`: todo -> active
+- 2026-11-21 22:48 — `node-labels`: active -> done
+- 2026-11-21 22:48 — verify `node-labels`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k labels`

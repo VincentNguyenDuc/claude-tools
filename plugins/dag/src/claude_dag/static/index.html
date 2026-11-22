@@ -61,6 +61,11 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
 .edge.back { stroke: var(--failed-b); stroke-dasharray: 6 3; }
 .edge.selected { stroke: var(--accent); stroke-width: 3; }
 .edge-hit { fill: none; stroke: transparent; stroke-width: 12; cursor: pointer; }
+/* Trace: the focused node's upstream and downstream chain stays lit, the rest is dimmed. */
+.node, .edge { transition: opacity .12s; }
+#canvas.trace .node:not(.lit) { opacity: .25; }
+#canvas.trace .edge:not(.lit) { opacity: .12; }
+#canvas.trace .edge.lit:not(.selected):not(.back) { stroke: var(--fg); stroke-width: 2; }
 #drag-line { stroke: var(--accent); stroke-dasharray: 5 4; }
 #panel { width: 400px; background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding: 12px 14px; display: none; }
 #panel.open { display: block; }
@@ -68,6 +73,24 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
 #panel label.f { display: block; font-size: 11px; color: var(--muted); margin: 10px 0 3px; text-transform: uppercase; letter-spacing: .04em; }
 #panel input[type=text], #panel select, #panel textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; }
 #panel textarea { min-height: 280px; resize: vertical; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.body-head { display: flex; justify-content: space-between; align-items: flex-end; }
+button.mini { padding: 1px 8px; font-size: 11px; }
+#form.editing-body #preview, #form:not(.editing-body) textarea[name=body] { display: none; }
+#preview { min-height: 120px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px;
+  font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.md h1, .md h2, .md h3, .md h4, .md h5, .md h6 { margin: 10px 0 4px; line-height: 1.25; }
+.md h1 { font-size: 17px; } .md h2 { font-size: 15px; } .md h3, .md h4, .md h5, .md h6 { font-size: 13px; }
+.md p { margin: 6px 0; }
+.md ul, .md ol { margin: 4px 0; padding-left: 20px; }
+.md li.task { list-style: none; margin-left: -18px; }
+.md li.task input { margin: 0 4px 0 0; vertical-align: -2px; }
+.md code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--panel); border-radius: 3px; padding: 0 3px; }
+.md pre { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; overflow: auto; }
+.md pre code { padding: 0; white-space: pre; }
+.md blockquote { margin: 6px 0; padding-left: 8px; border-left: 3px solid var(--line); color: var(--muted); }
+.md hr { border: none; border-top: 1px solid var(--line); }
+.md a { color: var(--accent); }
+.md .empty { color: var(--muted); }
 .row { display: flex; gap: 8px; } .row > div { flex: 1; min-width: 0; }
 #deps { max-height: 150px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; background: var(--bg); }
 #deps label { display: flex; gap: 6px; align-items: center; font-size: 12px; margin: 2px 0; cursor: pointer; }
@@ -83,6 +106,15 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
 #conflict .actions { margin-top: 8px; }
 #banner { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2; display: none;
   background: var(--active); border: 1px solid var(--active-b); padding: 6px 12px; border-radius: 6px; }
+#search { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 3; width: 380px; display: none;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.18); }
+#search.open { display: block; }
+#search input { width: 100%; border: none; border-bottom: 1px solid var(--line); background: transparent; padding: 8px 10px; outline: none; }
+#search ul { list-style: none; margin: 0; padding: 4px 0; max-height: 320px; overflow: auto; }
+#search li { padding: 4px 10px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+#search li.active { background: var(--bg); }
+#search li .sid { color: var(--muted); font-size: 11px; margin-left: auto; white-space: nowrap; }
+#search li.none { color: var(--muted); cursor: default; }
 #errors { position: absolute; left: 10px; bottom: 10px; max-width: 55%; display: none; font-size: 12px;
   background: var(--failed); border: 1px solid var(--failed-b); padding: 6px 10px; border-radius: 6px; }
 #errors ul { margin: 4px 0 0; padding-left: 18px; }
@@ -120,8 +152,12 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
       <div id="empty">No nodes yet. Double-click the canvas or press <b>&nbsp;N&nbsp;</b> to add one.</div>
       <div id="banner"></div>
       <div id="errors"></div>
+      <div id="search">
+        <input type="text" id="search-input" placeholder="Search nodes by title or id" autocomplete="off" spellcheck="false">
+        <ul id="search-results"></ul>
+      </div>
       <div id="help">click: edit · drag node: move · shift+drag A→B: B depends on A · click edge, then Delete: remove<br>
-        drag canvas: pan · wheel: zoom · double-click: new node · F: fit · Esc: close</div>
+        drag canvas: pan · wheel: zoom · double-click: new node · / or ⌘K: search · F: fit · Esc: close</div>
     </div>
     <aside id="panel">
       <form id="form" autocomplete="off">
@@ -137,7 +173,10 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
         </div>
         <label class="f">Depends on</label><div id="deps"></div>
         <label class="f">Verify command</label><input type="text" name="verify" placeholder="e.g. pytest tests/test_x.py">
-        <label class="f">Notes (markdown)</label><textarea name="body" spellcheck="false"></textarea>
+        <div class="body-head"><label class="f">Notes (markdown)</label>
+          <button type="button" id="body-toggle" class="mini" title="Switch between rendered notes and the editor">Edit</button></div>
+        <div id="preview" class="md" title="Double-click to edit"></div>
+        <textarea name="body" spellcheck="false"></textarea>
         <div class="actions">
           <button type="submit" class="primary" title="Cmd/Ctrl+S">Save</button>
           <button type="button" id="close">Close</button>
@@ -163,7 +202,9 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
 const KINDS = ["task", "milestone", "research", "decision", "test"];
 const STATUSES = ["todo", "active", "blocked", "done", "failed", "dropped"];
 const EFFECTIVE = ["todo", "ready", "active", "blocked", "done", "failed", "dropped"];
-const NW = 210, NH = 52, DH = 12, GX = 80, GY = 18;
+// Node box: at least NW wide (a column widens up to NW_MAX so the id/status line fits),
+// NH tall for a one-line title, plus LINE_H for a second title line.
+const NW = 210, NW_MAX = 480, NH = 52, LINE_H = 16, PAD = 10, DH = 12, GX = 80, GY = 18;
 const SVGNS = "http://www.w3.org/2000/svg";
 const $ = s => document.querySelector(s);
 const svg = $("#canvas"), form = $("#form");
@@ -209,6 +250,44 @@ async function load() {
   if (selected && !creating && !dirty) fillForm(byId(selected));
 }
 const byId = id => graph.nodes.find(n => n.id === id);
+
+// --------------------------------------------------------------- labels
+const measureCtx = document.createElement("canvas").getContext("2d");
+const FONT_FAMILY = getComputedStyle(document.body).fontFamily;
+function textW(text, size, weight = 400) {
+  measureCtx.font = `${weight} ${size}px ${FONT_FAMILY}`;
+  return measureCtx.measureText(text).width;
+}
+const titleText = n => (n.kind === "milestone" ? "◆ " : "") + n.title;
+const titleWeight = n => n.kind === "milestone" ? 700 : 500;
+const subText = n => `${n.effective_status} · ${n.kind === "task" ? n.id : n.kind + " · " + n.id}${n.kind === "milestone" ? milestoneCount(n) : ""}`;
+
+function fitText(text, max, size, weight) {  // cut with an ellipsis only if it doesn't fit
+  if (textW(text, size, weight) <= max) return text;
+  let t = text;
+  while (t && textW(t + "…", size, weight) > max) t = t.slice(0, -1);
+  return t.trimEnd() + "…";
+}
+
+// Greedy word wrap to at most two lines; overlong words are hard-broken; the rest is ellipsized.
+function wrapTitle(text, max, weight) {
+  const W = t => textW(t, 13, weight), lines = [];
+  let cur = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const next = cur ? `${cur} ${word}` : word;
+    if (W(next) <= max) { cur = next; continue; }
+    if (cur) lines.push(cur);
+    cur = word;
+    while (W(cur) > max && cur.length > 1) {
+      let k = cur.length - 1;
+      while (k > 1 && W(cur.slice(0, k)) > max) k--;
+      lines.push(cur.slice(0, k)); cur = cur.slice(k);
+    }
+  }
+  if (cur || !lines.length) lines.push(cur);
+  if (lines.length <= 2) return lines;
+  return [lines[0], fitText(lines.slice(1).join(" "), max, 13, weight)];
+}
 
 // --------------------------------------------------------------- layout
 function visibleNodes() {
@@ -285,11 +364,21 @@ function layout(nodes, edges) {
   // 3. Build layers with dummy items for long edges.
   const L = [], items = new Map();
   const put = it => { (L[it.layer] ||= []).push(it); items.set(it.id, it); };
-  topo.forEach(i => put({ id: i, h: NH, layer: layer.get(i), preds: [], succs: [] }));
+  const colW = [];
+  for (const n of nodes) {
+    const l = layer.get(n.id), need = Math.ceil(textW(subText(n), 11)) + 2 * PAD + 2;
+    colW[l] = Math.max(colW[l] || NW, Math.min(NW_MAX, need));
+  }
+  const byNode = new Map(nodes.map(n => [n.id, n]));
+  topo.forEach(i => {
+    const n = byNode.get(i), l = layer.get(i), w = colW[l] || NW;
+    const lines = wrapTitle(titleText(n), w - 2 * PAD, titleWeight(n));
+    put({ id: i, w, h: NH + (lines.length - 1) * LINE_H, lines, layer: l, preds: [], succs: [] });
+  });
   fwd.forEach((e, k) => {
     let prev = items.get(e.from); const target = items.get(e.to); e.chain = [];
     for (let l = prev.layer + 1; l < target.layer; l++) {
-      const d = { id: `~${k}:${l}`, dummy: true, h: DH, layer: l, preds: [prev], succs: [] };
+      const d = { id: `~${k}:${l}`, dummy: true, w: colW[l] || NW, h: DH, layer: l, preds: [prev], succs: [] };
       prev.succs.push(d); put(d); e.chain.push(d); prev = d;
     }
     prev.succs.push(target); target.preds.push(prev);
@@ -309,7 +398,12 @@ function layout(nodes, edges) {
     }
   }
   // 5. Coordinates: x by layer, y relaxed toward neighbours.
-  L.forEach((layerItems, l) => { let y = 0; layerItems.forEach(it => { it.x = l * (NW + GX); it.y = y; y += it.h + GY; }); });
+  let colX = 0;
+  L.forEach((layerItems, l) => {
+    let y = 0;
+    layerItems.forEach(it => { it.x = colX; it.y = y; y += it.h + GY; });
+    colX += (colW[l] || NW) + GX;
+  });
   for (let pass = 0; pass < 10; pass++) {
     const down = pass % 2 === 0, layers = down ? L : [...L].reverse();
     for (const layerItems of layers) {
@@ -329,12 +423,12 @@ function layout(nodes, edges) {
 
 function edgePath(e, pos) {
   const a = pos[e.from], b = pos[e.to];
-  const p0 = { x: a.x + NW, y: a.y + NH / 2 }, pn = { x: b.x, y: b.y + NH / 2 };
+  const p0 = { x: a.x + a.w, y: a.y + a.h / 2 }, pn = { x: b.x, y: b.y + b.h / 2 };
   if (e.back) {
     const dx = Math.max(80, Math.abs(pn.x - p0.x) / 3);
     return `M${p0.x},${p0.y} C${p0.x + dx},${p0.y + 60} ${pn.x - dx},${pn.y + 60} ${pn.x},${pn.y}`;
   }
-  const pts = [p0, ...(e.chain || []).map(d => ({ x: d.x + NW / 2, y: d.y + DH / 2 })), pn];
+  const pts = [p0, ...(e.chain || []).map(d => ({ x: d.x + d.w / 2, y: d.y + DH / 2 })), pn];
   let d = `M${pts[0].x},${pts[0].y}`;
   for (let i = 1; i < pts.length; i++) {
     const p = pts[i - 1], q = pts[i], dx = (q.x - p.x) / 2;
@@ -367,7 +461,8 @@ function draw() {
   for (const e of edges) {
     const d = edgePath(e, lay.pos), sel = sameEdge(e, selEdge);
     const cls = ["edge", e.kind, e.back ? "back" : "", sel ? "selected" : ""].join(" ");
-    ge.append(el("path", { d, class: cls, "marker-end": `url(#${sel ? "arrow-sel" : e.back ? "arrow-back" : "arrow"})` }));
+    ge.append(el("path", { d, class: cls, "data-from": e.from, "data-to": e.to,
+      "marker-end": `url(#${sel ? "arrow-sel" : e.back ? "arrow-back" : "arrow"})` }));
     if (e.kind === "dep") {
       const hit = el("path", { d, class: "edge-hit" });
       hit.append(el("title", {}, `${e.to} depends on ${e.from}`));
@@ -380,17 +475,53 @@ function draw() {
     const g = el("g", { class: `node ${st}${ms ? " milestone" : ""}${n.id === selected ? " selected" : ""}`,
       transform: `translate(${p.x},${p.y})`, "data-id": n.id });
     g.append(el("title", {}, `${n.title}\n${n.id} · ${n.kind} · ${st}${n.verify ? "\nverify: " + n.verify : ""}${p.pinned ? "\n(placed by hand)" : ""}`));
-    g.append(el("rect", { width: NW, height: NH, rx: ms ? 3 : 9, style: `fill:var(--${st});stroke:var(--${st}-b)` }));
-    g.append(el("text", { x: 10, y: 21, "font-weight": ms ? 700 : 500 }, clip((ms ? "◆ " : "") + n.title, 27)));
-    const counts = ms ? milestoneCount(n) : "";
-    g.append(el("text", { x: 10, y: 39, class: "sub" }, clip(`${st} · ${n.kind === "task" ? n.id : n.kind + " · " + n.id}${counts}`, 34)));
+    g.append(el("rect", { width: p.w, height: p.h, rx: ms ? 3 : 9, style: `fill:var(--${st});stroke:var(--${st}-b)` }));
+    p.lines.forEach((line, i) => g.append(el("text", { x: PAD, y: 21 + i * LINE_H, class: "title", "font-weight": titleWeight(n) }, line)));
+    g.append(el("text", { x: PAD, y: p.h - 13, class: "sub" }, fitText(subText(n), p.w - 2 * PAD, 11)));
     g.addEventListener("mousedown", ev => onNodeDown(ev, n.id));
+    g.addEventListener("mouseenter", () => { hovered = n.id; applyTrace(); });
+    g.addEventListener("mouseleave", () => { if (hovered === n.id) { hovered = null; applyTrace(); } });
     g.addEventListener("click", ev => { ev.stopPropagation(); if (!dragMoved) openPanel(n.id); });
     gn.append(g);
   }
   $("#empty").style.display = graph.nodes.length ? "none" : "flex";
   $("#unpin").style.display = selected && !creating && positions[selected] ? "" : "none";
+  applyTrace();
   renderHeader();
+}
+
+// ---------------------------------------------------------------- trace
+// Highlight everything the hovered (else selected) node transitively depends on and everything
+// that depends on it. Computed over the whole graph, so chains through filtered-out nodes still
+// connect; only classes change, nothing is re-laid out.
+let hovered = null;
+
+function reach(start, next) {
+  const seen = new Set([start]), stack = [start];
+  while (stack.length) for (const w of next.get(stack.pop()) || []) if (!seen.has(w)) { seen.add(w); stack.push(w); }
+  return seen;
+}
+
+function traceSets(id) {
+  const fwd = new Map(), back = new Map();
+  for (const e of edgesOf(graph.nodes)) {
+    (fwd.get(e.from) || fwd.set(e.from, []).get(e.from)).push(e.to);
+    (back.get(e.to) || back.set(e.to, []).get(e.to)).push(e.from);
+  }
+  return { up: reach(id, back), down: reach(id, fwd) };
+}
+
+function applyTrace() {
+  const focus = hovered || (!creating && selected) || null;
+  const on = !!(graph && focus && byId(focus));
+  svg.classList.toggle("trace", on);
+  if (!on) return;
+  const { up, down } = traceSets(focus);
+  document.querySelectorAll("#nodes .node").forEach(g => g.classList.toggle("lit", up.has(g.dataset.id) || down.has(g.dataset.id)));
+  document.querySelectorAll("#edges .edge").forEach(p => {
+    const a = p.dataset.from, b = p.dataset.to;
+    p.classList.toggle("lit", (up.has(a) && up.has(b)) || (down.has(a) && down.has(b)));
+  });
 }
 
 function milestoneCount(m) {
@@ -424,7 +555,114 @@ function renderHeader() {
   } else box.style.display = "none";
 }
 
+// ------------------------------------------------------- markdown preview
+// A small renderer for the markdown subset plan bodies use. It only builds DOM nodes and sets
+// textContent (never innerHTML), so HTML in a body shows up as text and can't run. Links must be
+// http(s) and open in a new tab; anything else stays plain text.
+const SAFE_URL = /^https?:\/\//i;
+const INLINE = /`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|\*\*([^*]+)\*\*|(?<![\w*])\*([^*\s][^*]*)\*(?![\w*])|(https?:\/\/[^\s<>()]*[^\s<>().,;:!?'"])/g;
+const h = (tag, ...kids) => { const e = document.createElement(tag); e.append(...kids); return e; };
+
+function mdLink(url, label, raw) {
+  if (!SAFE_URL.test(url)) return raw;
+  const a = h("a", label);
+  a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+  return a;
+}
+
+function mdInline(text) {
+  const frag = document.createDocumentFragment(), re = new RegExp(INLINE.source, "g");
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) frag.append(text.slice(last, m.index));
+    if (m[1] !== undefined) frag.append(h("code", m[1]));
+    else if (m[2] !== undefined) frag.append(mdLink(m[3], mdInline(m[2]), m[0]));
+    else if (m[4] !== undefined) frag.append(h("strong", mdInline(m[4])));
+    else if (m[5] !== undefined) frag.append(h("em", mdInline(m[5])));
+    else frag.append(mdLink(m[6], m[6], m[0]));
+    last = re.lastIndex;
+  }
+  if (last < text.length) frag.append(text.slice(last));
+  return frag;
+}
+
+function mdRender(src) {
+  const root = document.createDocumentFragment(), lines = src.replace(/\r\n?/g, "\n").split("\n");
+  let para = [], lists = [], quote = null;  // lists: stack of {el, indent}
+  const flush = () => {
+    if (para.length) root.append(h("p", mdInline(para.join(" "))));
+    para = []; lists = []; quote = null;
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i], fence = line.match(/^\s*(```|~~~)/);
+    if (fence) {
+      flush();
+      const code = [];
+      for (i++; i < lines.length && !lines[i].trim().startsWith(fence[1]); i++) code.push(lines[i]);
+      root.append(h("pre", h("code", code.join("\n"))));
+      continue;
+    }
+    if (!line.trim()) { flush(); continue; }
+    const head = line.match(/^(#{1,6})\s+(.*?)\s*#*\s*$/);
+    if (head) { flush(); root.append(h("h" + head[1].length, mdInline(head[2]))); continue; }
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flush(); root.append(h("hr")); continue; }
+    const q = line.match(/^\s*>\s?(.*)$/);
+    if (q) {
+      if (!quote) { flush(); quote = h("blockquote"); root.append(quote); } else quote.append(" ");
+      quote.append(mdInline(q[1]));
+      continue;
+    }
+    const item = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+    if (item) {
+      if (para.length || quote) flush();
+      const indent = item[1].replace(/\t/g, "  ").length, tag = /\d/.test(item[2]) ? "ol" : "ul";
+      while (lists.length) {
+        const top = lists[lists.length - 1];
+        if (top.indent > indent || (top.indent === indent && top.el.localName !== tag)) lists.pop(); else break;
+      }
+      let top = lists[lists.length - 1];
+      if (!top || top.indent < indent) {
+        const list = h(tag);
+        (top ? top.el.lastElementChild : root).append(list);
+        top = { el: list, indent }; lists.push(top);
+      }
+      const li = h("li"), task = item[3].match(/^\[([ xX])\]\s+(.*)$/);
+      if (task) {
+        const box = h("input"); box.type = "checkbox"; box.disabled = true; box.checked = task[1] !== " ";
+        li.className = "task"; li.append(box, mdInline(task[2]));
+      } else li.append(mdInline(item[3]));
+      top.el.append(li);
+      continue;
+    }
+    if (lists.length && /^\s/.test(line)) {  // continuation of the last list item
+      lists[lists.length - 1].el.lastElementChild.append(" ", mdInline(line.trim()));
+      continue;
+    }
+    if (lists.length || quote) flush();
+    para.push(line.trim());
+  }
+  flush();
+  return root;
+}
+
 // ---------------------------------------------------------------- panel
+let bodyMode = "preview";  // "preview" shows rendered notes, "edit" the textarea
+function showBody() {
+  const editing = bodyMode === "edit";
+  form.classList.toggle("editing-body", editing);
+  $("#body-toggle").textContent = editing ? "Preview" : "Edit";
+  if (editing) return;
+  const pv = $("#preview");
+  pv.replaceChildren(mdRender(F("body").value));
+  if (!pv.childNodes.length) pv.append(Object.assign(h("p", "No notes yet. Click Edit to add some."), { className: "empty" }));
+}
+function setBodyMode(mode) {
+  bodyMode = mode; showBody();
+  if (mode === "edit") F("body").focus();
+}
+$("#body-toggle").addEventListener("click", () => setBodyMode(bodyMode === "edit" ? "preview" : "edit"));
+$("#preview").addEventListener("dblclick", ev => { if (!ev.target.closest("a")) setBodyMode("edit"); });
+
 function options(select, values, labels) {
   select.replaceChildren(...values.map((v, i) => new Option(labels ? labels[i] : v, v)));
 }
@@ -495,11 +733,13 @@ function fillForm(n) {
   $("#msg").textContent = "";
   base = n ? { rev: n.rev, node: nodeValues(n), form: formValues() } : null;
   dirty = false;
+  showBody();
 }
 
 function openPanel(id) {
   if (dirty && !confirm("Discard unsaved changes?")) return;
   creating = id === null; selected = id; selEdge = null;
+  bodyMode = creating ? "edit" : "preview";
   $("#panel").classList.add("open");
   fillForm(id ? byId(id) : null);
   render();
@@ -606,7 +846,7 @@ window.addEventListener("mousemove", ev => {
   } else if (link && lastLayout) {
     dragMoved = true;
     const a = lastLayout.pos[link.from], w = toWorld(ev), line = $("#drag-line");
-    line.setAttribute("d", `M${a.x + NW},${a.y + NH / 2} L${w.x},${w.y}`); line.style.display = "";
+    line.setAttribute("d", `M${a.x + a.w},${a.y + a.h / 2} L${w.x},${w.y}`); line.style.display = "";
     document.querySelectorAll(".node.link-target").forEach(n => n.classList.remove("link-target"));
     const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".node");
     if (over && over.dataset.id !== link.from) over.classList.add("link-target");
@@ -642,9 +882,14 @@ svg.addEventListener("click", () => {
 svg.addEventListener("dblclick", ev => { if (!ev.target.closest(".node")) openPanel(null); });
 
 window.addEventListener("keydown", async ev => {
-  const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+  const a = document.activeElement, tag = a?.tagName;
+  // Text fields swallow all shortcuts; a focused select only letters (type-ahead); checkboxes none.
+  const textEntry = tag === "TEXTAREA" || (tag === "INPUT" && !["checkbox", "radio", "button"].includes(a.type));
+  const typing = textEntry || tag === "SELECT";
   if ((ev.metaKey || ev.ctrlKey) && ev.key === "s" && $("#panel").classList.contains("open")) { ev.preventDefault(); save(); return; }
+  if ((ev.metaKey || ev.ctrlKey) && (ev.key === "k" || ev.key === "K")) { ev.preventDefault(); openSearch(); return; }
   if (ev.key === "Escape") { if (selEdge) { selEdge = null; render(); } else if ($("#panel").classList.contains("open")) closePanel(); return; }
+  if (ev.key === "/" && !textEntry) { ev.preventDefault(); openSearch(); return; }
   if (typing) return;
   if ((ev.key === "Delete" || ev.key === "Backspace") && selEdge) {
     ev.preventDefault();
@@ -653,6 +898,78 @@ window.addEventListener("keydown", async ev => {
   } else if (ev.key === "f" || ev.key === "F") fit();
   else if (ev.key === "n" || ev.key === "N") openPanel(null);
 });
+
+// --------------------------------------------------------------- search
+let searchHits = [], searchActive = 0;
+
+function openSearch() {
+  if (!graph) return;
+  $("#search").classList.add("open");
+  const input = $("#search-input"); input.focus(); input.select();
+  runSearch();
+}
+function closeSearch() { $("#search").classList.remove("open"); $("#search-input").blur(); }
+
+function runSearch() {
+  const q = $("#search-input").value.trim().toLowerCase();
+  const rank = n => {
+    const id = n.id.toLowerCase(), t = n.title.toLowerCase();
+    if (!q) return 0;
+    if (id === q || t === q) return 1;
+    if (id.startsWith(q) || t.startsWith(q)) return 2;
+    if (id.includes(q) || t.includes(q)) return 3;
+    return 0;
+  };
+  searchHits = q ? graph.nodes.map(n => [rank(n), n]).filter(([r]) => r).sort((a, b) => a[0] - b[0]).map(([, n]) => n) : [];
+  searchActive = 0;
+  drawSearch();
+}
+
+function drawSearch() {
+  const ul = $("#search-results"); ul.replaceChildren();
+  if ($("#search-input").value.trim() && !searchHits.length) ul.append(Object.assign(h("li", "No match"), { className: "none" }));
+  searchHits.slice(0, 50).forEach((n, i) => {
+    const li = h("li", (n.kind === "milestone" ? "◆ " : "") + n.title, Object.assign(h("span", `${n.id} · ${n.effective_status}`), { className: "sid" }));
+    li.dataset.id = n.id;
+    if (i === searchActive) li.className = "active";
+    li.addEventListener("mousedown", ev => { ev.preventDefault(); goToNode(n.id); });
+    ul.append(li);
+  });
+  ul.querySelector(".active")?.scrollIntoView({ block: "nearest" });
+}
+
+function goToNode(id) {
+  closeSearch();
+  const n = byId(id); if (!n) return;
+  if (!visibleNodes().some(v => v.id === id)) {  // clear only the filter(s) hiding it
+    const ms = $("#filter-ms");
+    if (ms.value && ms.value !== id && n.milestone !== ms.value) ms.value = "";
+    if (["done", "dropped"].includes(n.effective_status)) $("#hide-done").checked = false;
+  }
+  if (selected !== id || creating) openPanel(id); else render();
+  centerOn(id);
+}
+
+function centerOn(id) {
+  const p = lastLayout && lastLayout.pos[id], r = svg.getBoundingClientRect();
+  if (!p || !r.width) return;
+  view.x = r.width / 2 - (p.x + p.w / 2) * view.k; view.y = r.height / 2 - (p.y + p.h / 2) * view.k;
+  applyView();
+}
+
+$("#search-input").addEventListener("input", runSearch);
+$("#search-input").addEventListener("keydown", ev => {
+  ev.stopPropagation();  // keep Esc, N, F, Delete... from reaching the canvas shortcuts
+  if (ev.key === "Escape") { ev.preventDefault(); closeSearch(); }
+  else if (ev.key === "Enter") { ev.preventDefault(); if (searchHits[searchActive]) goToNode(searchHits[searchActive].id); }
+  else if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+    ev.preventDefault();
+    const n = Math.min(searchHits.length, 50); if (!n) return;
+    searchActive = (searchActive + (ev.key === "ArrowDown" ? 1 : n - 1)) % n;
+    drawSearch();
+  }
+});
+$("#search-input").addEventListener("blur", () => setTimeout(closeSearch, 0));
 
 $("#fit").addEventListener("click", fit);
 $("#reset-layout").addEventListener("click", async () => {
