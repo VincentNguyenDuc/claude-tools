@@ -1,0 +1,17 @@
+{
+  "name": "claude-tools",
+  "owner": {
+    "name": "VincentNguyenDuc"
+  },
+  "metadata": {
+    "description": "Personal Claude Code plugin marketplace"
+  },
+  "plugins": [
+    {
+      "name": "git",
+      "source": "./plugins/git",
+      "description": "Git and GitHub workflow skills: commit, push, pull, sync, pr",
+      "version": "0.1.0"
+    }
+  ]
+}
