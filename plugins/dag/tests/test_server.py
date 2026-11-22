@@ -76,3 +76,30 @@ def test_rejects_unknown_fields(server):
     request(port, "POST", "/api/nodes", {"title": "A", "id": "a"})
     status, data = request(port, "PATCH", "/api/nodes/a", {"node_id": "x"})
     assert status == 400 and "cannot edit" in data["error"]
+
+
+def test_patch_base_rev(server):
+    port, dag_dir = server
+    request(port, "POST", "/api/nodes", {"title": "A", "id": "a"})
+    rev = {n["id"]: n["rev"] for n in request(port, "GET", "/api/graph")[1]["nodes"]}["a"]
+
+    # matching revision: applied, and the response carries the new revision
+    status, data = request(port, "PATCH", "/api/nodes/a", {"body": "mine", "base_rev": rev})
+    assert status == 200 and data["node"]["body"].strip() == "mine" and data["node"]["rev"] != rev
+    new_rev = data["node"]["rev"]
+
+    # someone else edits the file; a save based on the old revision is refused
+    Graph(dag_dir).update("a", status="done")
+    status, data = request(port, "PATCH", "/api/nodes/a", {"body": "stale", "base_rev": new_rev})
+    assert status == 409 and "changed on disk" in data["error"]
+    assert data["node"]["status"] == "done" and data["node"]["body"].strip() == "mine"
+    assert Graph(dag_dir).get("a").body.strip() == "mine"
+
+    # retrying with the revision from the 409 goes through and keeps the other edit
+    status, data = request(port, "PATCH", "/api/nodes/a", {"body": "mine again", "base_rev": data["node"]["rev"]})
+    assert status == 200 and data["node"]["status"] == "done"
+
+    # no base_rev: last writer wins, as for the CLI and MCP tools
+    Graph(dag_dir).update("a", title="Renamed elsewhere")
+    status, data = request(port, "PATCH", "/api/nodes/a", {"status": "todo"})
+    assert status == 200 and data["node"]["status"] == "todo" and data["node"]["title"] == "Renamed elsewhere"

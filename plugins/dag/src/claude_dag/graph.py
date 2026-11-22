@@ -13,6 +13,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from .layout import drop_from_layout, rename_in_layout
 from .model import (
     DEFAULT_BODY,
     EFFECTIVE_STATUSES,
@@ -437,6 +438,7 @@ class Graph:
                 changed.append(other)
         self._commit(changed, removed)
         if renamed:
+            rename_in_layout(self.dir, node_id, new_id)
             self.log(f"renamed `{node_id}` -> `{new_id}`")
         if old.status != node.status:
             self.log(f"`{node.id}`: {old.status} -> {node.status}")
@@ -460,6 +462,7 @@ class Graph:
                 other.milestone = None
             changed.append(other)
         self._commit(changed, (node_id,))
+        drop_from_layout(self.dir, node_id)
         self.log(f"removed `{node_id}`")
 
     def link(self, src: str, dst: str) -> Node:
@@ -520,7 +523,8 @@ class Graph:
             "errors": self.validate(),
             "default_body": DEFAULT_BODY,
             "nodes": [
-                {**self.nodes[i].to_dict(), "effective_status": st[i]} for i in self.topo_order()
+                {**self.nodes[i].to_dict(), "rev": self.nodes[i].revision(), "effective_status": st[i]}
+                for i in self.topo_order()
             ],
         }
 

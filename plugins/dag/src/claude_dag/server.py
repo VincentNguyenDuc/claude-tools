@@ -17,12 +17,17 @@ from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 from .graph import EDITABLE, Graph, dir_version
+from .layout import layout_version, read_layout, save_layout
 from .model import DagError
 
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 ADD_FIELDS = {"id", "kind", "status", "deps", "milestone", "verify", "body"}
 MAX_BODY = 2_000_000
 _WRITE_LOCK = threading.Lock()
+
+
+def _node_json(node: Any) -> dict[str, Any]:
+    return {**node.to_dict(), "rev": node.revision()}
 
 
 def _hostname(host_header: str) -> str:
@@ -83,6 +88,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_PATCH(self) -> None:
         self._route("PATCH")
 
+    def do_PUT(self) -> None:
+        self._route("PUT")
+
     def do_DELETE(self) -> None:
         self._route("DELETE")
 
@@ -108,7 +116,10 @@ class Handler(BaseHTTPRequestHandler):
         elif parts == ["api", "graph"]:
             self._send(200, Graph(self.dag_dir).to_json())
         elif parts == ["api", "version"]:
-            self._send(200, {"version": dir_version(self.dag_dir)})
+            self._send(200, {"version": dir_version(self.dag_dir), "layout": layout_version(self.dag_dir)})
+        elif parts == ["api", "layout"]:
+            positions = read_layout(self.dag_dir, Graph(self.dag_dir).nodes)
+            self._send(200, {"positions": positions, "version": layout_version(self.dag_dir)})
         else:
             self._send(404, {"error": "not found"})
 
@@ -121,18 +132,34 @@ class Handler(BaseHTTPRequestHandler):
             if unknown:
                 raise DagError(f"unknown field(s): {', '.join(sorted(unknown))}")
             node = graph.add(title, **body)
-            self._send(201, {"node": node.to_dict()})
+            self._send(201, {"node": _node_json(node)})
         elif method == "PATCH" and len(parts) == 3 and parts[:2] == ["api", "nodes"]:
             body = self._json_body()
+            base_rev = body.pop("base_rev", None)
             unknown = set(body) - EDITABLE - {"id"}
             if unknown:
                 raise DagError(f"cannot edit field(s): {', '.join(sorted(unknown))}")
+            # Optional optimistic check: the client says which revision it edited.
+            # Without base_rev the last writer wins (CLI/MCP-style callers).
+            current = graph.get(parts[2])
+            if base_rev is not None and str(base_rev) != current.revision():
+                self._send(409, {"error": "node changed on disk since you opened it", "node": _node_json(current)})
+                return
             node = graph.update(parts[2], **body)
-            self._send(200, {"node": node.to_dict()})
+            self._send(200, {"node": _node_json(node)})
         elif method == "DELETE" and len(parts) == 3 and parts[:2] == ["api", "nodes"]:
             force = parse_qs(query).get("force", ["0"])[0] in ("1", "true")
             graph.remove(parts[2], force=force)
             self._send(200, {"ok": True})
+        elif method == "PUT" and parts == ["api", "layout"]:
+            body = self._json_body()
+            unknown = set(body) - {"positions", "replace"}
+            if unknown:
+                raise DagError(f"unknown field(s): {', '.join(sorted(unknown))}")
+            positions = save_layout(
+                self.dag_dir, body.get("positions", {}), graph.nodes, replace=bool(body.get("replace"))
+            )
+            self._send(200, {"positions": positions, "version": layout_version(self.dag_dir)})
         elif parts == ["api", "edges"] and method in ("POST", "DELETE"):
             body = self._json_body()
             src, dst = str(body.get("from", "")), str(body.get("to", ""))

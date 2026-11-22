@@ -35,6 +35,7 @@ The MCP server finds the plan by searching upward from `$CLAUDE_PROJECT_DIR`.
 .claude-dag/
   nodes/<id>.md     # one node per file
   log.md            # append-only: adds, status changes, verify results, notes
+  layout.json       # optional: node positions saved by the web UI
 ```
 
 ```markdown
@@ -89,9 +90,17 @@ claude-dag serve --open                           # web UI on http://127.0.0.1:8
 
 - Nodes are laid out left to right by dependency and colored by status.
 - Click a node to edit it. Double-click the canvas or press **N** to add one.
+- **Drag** a node to move it. Moved nodes are pinned, and their positions are saved in
+  `.claude-dag/layout.json` (shared through git, not stored in the node files). All other nodes
+  are still placed automatically. **Unpin** in the panel releases one node. **Reset layout** in
+  the header releases all of them, after asking first. Drag empty canvas to pan.
 - **Shift+drag** from A to B to make B depend on A. Click an edge, then press **Delete**, to remove it.
 - Filter by milestone or hide finished work. **F** fits the graph to the view.
 - Polls for file changes, so edits made by Claude or the CLI appear live.
+- **Save** sends only the fields you changed. If the node's file changed on disk since you opened
+  it (for example, Claude marked it done), nothing is written. The panel lists what changed and
+  offers **Reload (discard mine)** or **Overwrite**. Overwrite writes only your edited fields, so
+  other changes on disk are kept.
 
 ## Develop
 
@@ -99,3 +108,12 @@ claude-dag serve --open                           # web UI on http://127.0.0.1:8
 cd plugins/dag && uv run --group dev pytest -q
 claude --plugin-dir plugins/dag                   # try the plugin from source
 ```
+
+The web UI tests (`tests/test_ui.py`) drive a headless Chromium through
+Playwright. Install the browser once, or they're skipped:
+
+```sh
+cd plugins/dag && uv run --group dev playwright install --only-shell chromium   # ~100 MB, cached in ~/Library/Caches/ms-playwright
+```
+
+Keep the UI a single static `index.html` with no build step.

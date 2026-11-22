@@ -54,3 +54,16 @@
 - 2026-11-21 16:57 — added `milestone-groups` (task): Draw a box around each milestone's members
 - 2026-11-21 16:57 — added `release-m4` (task): Release dag 0.4.0
 - 2026-11-21 16:57 — Planned M3 (move nodes, conflict-safe edits) and M4 (readability) for the web UI; the dag is now used to develop itself. Decisions: node positions in .claude-dag/layout.json (not frontmatter or localStorage); UI testing approach is an explicit decision node (ui-test-harness, Playwright recommended since local node is broken); ui-feedback moved into M4 after M3 and gates release-m4. Ids use release-m3/release-m4 because dots aren't allowed in ids.
+- 2026-11-21 22:27 — `ui-test-harness`: todo -> active
+- 2026-11-21 22:27 — `ui-test-harness`: active -> done
+- 2026-11-21 22:27 — verify `ui-test-harness`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py`
+- 2026-11-21 22:29 — `layout-store`: todo -> active
+- 2026-11-21 22:30 — `layout-store`: active -> done
+- 2026-11-21 22:30 — verify `layout-store`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_layout.py`
+- 2026-11-21 22:30 — `safe-edits`: todo -> active
+- 2026-11-21 22:33 — `safe-edits`: active -> done
+- 2026-11-21 22:33 — verify `safe-edits`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_server.py`
+- 2026-11-21 22:33 — `node-drag`: todo -> active
+- 2026-11-21 22:35 — `node-drag`: active -> done
+- 2026-11-21 22:35 — verify `node-drag`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k drag`
+- 2026-11-21 22:35 — `release-m3`: todo -> active

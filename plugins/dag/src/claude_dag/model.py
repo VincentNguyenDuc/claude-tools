@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass, field, replace
 from typing import Any
@@ -101,6 +102,10 @@ class Node:
             "body": self.body,
             "extra": dict(self.extra),
         }
+
+    def revision(self) -> str:
+        """Content hash of the node, used to detect edits made since a client read it."""
+        return hashlib.sha1(self.to_markdown().encode()).hexdigest()[:16]
 
     def to_markdown(self) -> str:
         meta: dict[str, Any] = {

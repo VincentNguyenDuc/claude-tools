@@ -1,6 +1,6 @@
 [project]
 name = "claude-dag"
-version = "0.2.1"
+version = "0.3.0"
 description = "File-backed planning DAG (.claude-dag/) with a CLI, local web UI and MCP server"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,7 +14,10 @@ claude-dag = "claude_dag.cli:main"
 claude-dag-mcp = "claude_dag.mcp_server:main"
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = [
+    "playwright>=1.65.2",
+    "pytest>=8",
+]
 
 [build-system]
 requires = ["hatchling"]
