@@ -584,3 +584,62 @@ def test_labels_wrap_and_keep_id_line(dag, page):
         for b in boxes[i + 1:]:
             assert a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1], (a, b)
     assert page.js_errors == []
+
+
+def screen_box(page, selector):
+    b = page.locator(selector).first.bounding_box()
+    return b["x"], b["y"], b["x"] + b["width"], b["y"] + b["height"]
+
+
+def contains(outer, inner):
+    return outer[0] <= inner[0] and outer[1] <= inner[1] and outer[2] >= inner[2] and outer[3] >= inner[3]
+
+
+def test_groups_box_members_follow_drag_and_toggle(dag, page):
+    graph, url = dag
+    graph.add_many([
+        {"id": "m1", "title": "First milestone", "kind": "milestone"},
+        {"id": "m2", "title": "Second milestone", "kind": "milestone", "deps": ["m1"]},
+        {"id": "m3", "title": "Empty milestone", "kind": "milestone"},
+        {"id": "a", "title": "A", "milestone": "m1"},
+        {"id": "b", "title": "B", "deps": ["a"], "milestone": "m1"},
+        {"id": "c", "title": "C", "deps": ["b"], "milestone": "m2"},
+        {"id": "loose", "title": "Loose"},
+    ])
+    page.goto(url)
+    page.wait_for_selector("#groups .group[data-id='m2']")
+    assert set(page.eval_on_selector_all("#groups .group", "els => els.map(e => e.dataset.id)")) == {"m1", "m2"}
+    assert "First milestone" in page.text_content("#groups .group[data-id='m1'] text")
+    # behind nodes and edges, and never catches the mouse
+    assert page.evaluate("() => [...document.querySelector('#viewport').children].map(e => e.id)")[:2] == ["groups", "edges"]
+    assert page.evaluate("() => getComputedStyle(document.querySelector('.group')).pointerEvents") == "none"
+    hues = page.eval_on_selector_all("#groups .group", "els => els.map(e => e.style.getPropertyValue('--h'))")
+    assert len(set(hues)) == 2
+
+    g1 = screen_box(page, "#groups .group[data-id='m1'] rect")
+    for n in ("a", "b"):
+        assert contains(g1, screen_box(page, f"#nodes .node[data-id='{n}'] rect"))
+    assert not contains(g1, screen_box(page, "#nodes .node[data-id='c'] rect"))
+
+    # dragging a member stretches its box, live and after the drop
+    drag_by(page, "#nodes .node[data-id='b'] rect", 0, 260)
+    g1 = screen_box(page, "#groups .group[data-id='m1'] rect")
+    assert contains(g1, screen_box(page, "#nodes .node[data-id='b'] rect"))
+    assert contains(g1, screen_box(page, "#nodes .node[data-id='a'] rect"))
+
+    # hidden members don't count; a box with no visible members disappears
+    graph.update("c", status="done")
+    page.reload()
+    page.wait_for_selector("#groups .group[data-id='m2']")
+    page.check("#hide-done")
+    page.wait_for_selector("#groups .group[data-id='m2']", state="detached")
+
+    # toggle off, and the choice survives a reload
+    page.uncheck("#show-groups")
+    assert page.locator("#groups .group").count() == 0
+    page.reload()
+    page.wait_for_selector("#nodes .node[data-id='a']")
+    assert not page.is_checked("#show-groups") and page.locator("#groups .group").count() == 0
+    page.check("#show-groups")
+    page.wait_for_selector("#groups .group[data-id='m1']")
+    assert page.js_errors == []

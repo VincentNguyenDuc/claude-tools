@@ -15,4 +15,6 @@ deps: [m3-ui-arrange]
 
 Findings from `ui-feedback` may add or drop nodes here (`/dag:replan`).
 
+2026-11-22: `ui-feedback` produced no changes to M4. Its findings became M5 (`m5-agent-activity`) and M6 (`m6-vscode`). `milestone-groups` stays.
+
 ## Result

@@ -95,6 +95,11 @@ claude-dag serve --open                           # web UI on http://127.0.0.1:8
   are still placed automatically. **Unpin** in the panel releases one node. **Reset layout** in
   the header releases all of them, after asking first. Drag empty canvas to pan.
 - **Shift+drag** from A to B to make B depend on A. Click an edge, then press **Delete**, to remove it.
+- Full titles wrap onto two lines (the full title is in the tooltip). The panel shows a node's notes
+  as rendered markdown; double-click them or press **Edit** to change the source.
+- Hover a node, or select it, to highlight everything it depends on and everything that depends on
+  it. Press **/** or **Cmd/Ctrl+K** to search nodes by title or id and jump to one.
+- Each milestone's members get a tinted box; the **groups** checkbox turns the boxes off.
 - Filter by milestone or hide finished work. **F** fits the graph to the view.
 - Polls for file changes, so edits made by Claude or the CLI appear live.
 - **Save** sends only the fields you changed. If the node's file changed on disk since you opened

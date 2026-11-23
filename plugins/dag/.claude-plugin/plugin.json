@@ -1,6 +1,6 @@
 {
   "name": "dag",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Planning DAG for long-running work: milestones, dependencies, verify checks; skills, MCP tools, session hook and web UI",
   "author": {
     "name": "VincentNguyenDuc"

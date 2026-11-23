@@ -81,3 +81,39 @@
 - 2026-11-21 22:46 — `node-labels`: todo -> active
 - 2026-11-21 22:48 — `node-labels`: active -> done
 - 2026-11-21 22:48 — verify `node-labels`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k labels`
+- 2026-11-22 21:40 — added `m5-agent-activity` (milestone): M5: see what agents are doing
+- 2026-11-22 21:40 — added `activity-design` (research): Design session tracking: hook events, storage, cost
+- 2026-11-22 21:40 — added `activity-log` (task): Hooks append per-session activity events
+- 2026-11-22 21:40 — added `session-binding` (task): Link sessions to the nodes they work on
+- 2026-11-22 21:40 — added `activity-api` (task): Expose node activity in the API, CLI and summary
+- 2026-11-22 21:40 — added `ui-activity` (task): Live and stalled markers and an activity tab in the web UI
+- 2026-11-22 21:40 — added `release-m5` (task): Release dag 0.5.0
+- 2026-11-22 21:40 — added `m6-vscode` (milestone): M6: the DAG inside VS Code
+- 2026-11-22 21:40 — added `vscode-scaffold` (task): Scaffold the VS Code extension package
+- 2026-11-22 21:40 — added `vscode-server` (task): Extension starts or reuses the claude-dag server
+- 2026-11-22 21:40 — added `vscode-webview` (task): Graph panel: the web UI in a webview
+- 2026-11-22 21:40 — added `vscode-tree` (task): Sidebar tree of milestones and nodes
+- 2026-11-22 21:40 — added `vscode-statusbar` (task): Status bar item: active node and milestone progress
+- 2026-11-22 21:40 — added `vscode-run` (task): Run a node in a Claude terminal
+- 2026-11-22 21:40 — added `vscode-activity` (task): Open touched files and session terminals from activity
+- 2026-11-22 21:40 — added `vscode-package` (task): Package the extension as a .vsix
+- 2026-11-22 21:40 — replan from `ui-feedback`: added M5 `m5-agent-activity` (activity-design, activity-log, session-binding, activity-api, ui-activity, release-m5) and M6 `m6-vscode` (vscode-scaffold, -server, -webview, -tree, -statusbar, -run, -activity, -package). The DAG didn't know what agents were doing, and the UI lived outside the editor. Chat window and headless web Run button dismissed. Implementation waits on release-m4.
+- 2026-11-22 21:45 — renamed `m6-vscode` -> `m7-vscode`
+- 2026-11-22 21:45 — renamed `m5-agent-activity` -> `m6-agent-activity`
+- 2026-11-22 21:45 — renamed `release-m5` -> `release-m6`
+- 2026-11-22 21:46 — added `m5-yaml-storage` (milestone): M5: plan stored in YAML, UI read-only
+- 2026-11-22 21:46 — added `yaml-format` (decision): Spec the YAML plan format
+- 2026-11-22 21:46 — added `yaml-loader` (task): Load the graph from YAML plan files
+- 2026-11-22 21:46 — added `yaml-writer` (task): Round-trip writes to YAML and body files
+- 2026-11-22 21:46 — added `yaml-backend` (task): Switch the tools, CLI and server to YAML storage
+- 2026-11-22 21:46 — added `ui-read-only` (task): Make the web UI a read-only view
+- 2026-11-22 21:46 — added `yaml-migrate` (task): claude-dag migrate: frontmatter nodes to YAML
+- 2026-11-22 21:46 — added `yaml-docs` (task): Update README and skills for YAML storage
+- 2026-11-22 21:46 — added `release-m5` (task): Release dag 0.5.0
+- 2026-11-22 21:46 — added `migrate-this-repo` (task): Migrate this repo's own plan to YAML
+- 2026-11-22 21:46 — replan: inserted M5 `m5-yaml-storage` (YAML plan files under `.claude-dag/plan/` that can reference each other, `body:` pointing to separate markdown files, round-trip writes from the tools, UI read-only apart from dragging, `claude-dag migrate`, release 0.5.0, then migrate this repo). Renamed activity to M6 (`m6-agent-activity`, release 0.6.0) and VS Code to M7 (`m7-vscode`). Both now wait on `migrate-this-repo`. The user wants YAML as the source of truth and the UI as a visualization tool.
+- 2026-11-22 21:48 — `ui-feedback`: todo -> done
+- 2026-11-22 21:49 — `milestone-groups`: todo -> active
+- 2026-11-22 21:50 — `milestone-groups`: active -> done
+- 2026-11-22 21:50 — verify `milestone-groups`: pass (exit 0) — `cd plugins/dag && uv run -q --group dev pytest -q tests/test_ui.py -k groups`
+- 2026-11-22 21:50 — `release-m4`: todo -> active

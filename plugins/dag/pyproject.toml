@@ -1,6 +1,6 @@
 [project]
 name = "claude-dag"
-version = "0.3.0"
+version = "0.4.0"
 description = "File-backed planning DAG (.claude-dag/) with a CLI, local web UI and MCP server"
 readme = "README.md"
 requires-python = ">=3.11"

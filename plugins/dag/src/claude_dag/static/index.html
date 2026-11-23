@@ -67,6 +67,12 @@ select { background: var(--panel); border: 1px solid var(--line); border-radius:
 #canvas.trace .edge:not(.lit) { opacity: .12; }
 #canvas.trace .edge.lit:not(.selected):not(.back) { stroke: var(--fg); stroke-width: 2; }
 #drag-line { stroke: var(--accent); stroke-dasharray: 5 4; }
+/* Milestone boxes: behind everything, never catch the mouse (panning starts on the canvas). */
+.group { pointer-events: none; }
+.group rect { fill: hsl(var(--h) 70% 55% / .07); stroke: hsl(var(--h) 60% 50% / .55); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.group text { fill: hsl(var(--h) 60% 42%); font-size: 12px; font-weight: 600; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+@media (prefers-color-scheme: dark) { .group text { fill: hsl(var(--h) 70% 70%); } }
+#canvas.trace .group { opacity: .5; }
 #panel { width: 400px; background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding: 12px 14px; display: none; }
 #panel.open { display: block; }
 #panel .head { display: flex; justify-content: space-between; align-items: center; }
@@ -132,6 +138,7 @@ button.mini { padding: 1px 8px; font-size: 11px; }
     <span id="progress"></span>
     <select id="filter-ms" title="Show one milestone"><option value="">All milestones</option></select>
     <label><input type="checkbox" id="hide-done"> hide done</label>
+    <label title="Draw a box around each milestone's members"><input type="checkbox" id="show-groups" checked> groups</label>
     <button id="reset-layout" title="Forget hand-placed positions and lay out everything automatically">Reset layout</button>
     <button id="fit" title="Fit graph to view (F)">Fit</button>
     <button id="add" class="primary" title="New node (N)">+ Node</button>
@@ -147,7 +154,7 @@ button.mini { padding: 1px 8px; font-size: 11px; }
           <marker id="arrow-back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" style="fill: var(--failed-b)"/></marker>
         </defs>
-        <g id="viewport"><g id="edges"></g><g id="nodes"></g><path id="drag-line" class="edge" style="display:none"/></g>
+        <g id="viewport"><g id="groups"></g><g id="edges"></g><g id="nodes"></g><path id="drag-line" class="edge" style="display:none"/></g>
       </svg>
       <div id="empty">No nodes yet. Double-click the canvas or press <b>&nbsp;N&nbsp;</b> to add one.</div>
       <div id="banner"></div>
@@ -458,6 +465,7 @@ function draw() {
   const lay = lastLayout, { nodes, edges } = lay;
   const ge = $("#edges"), gn = $("#nodes");
   ge.replaceChildren(); gn.replaceChildren();
+  drawGroups(lay);
   for (const e of edges) {
     const d = edgePath(e, lay.pos), sel = sameEdge(e, selEdge);
     const cls = ["edge", e.kind, e.back ? "back" : "", sel ? "selected" : ""].join(" ");
@@ -488,6 +496,25 @@ function draw() {
   $("#unpin").style.display = selected && !creating && positions[selected] ? "" : "none";
   applyTrace();
   renderHeader();
+}
+
+// Box around each milestone's visible members (nodes whose `milestone` is it), from the current
+// positions, so it follows pinned and dragged nodes. Each milestone gets its own hue.
+const GP = 12, GLABEL = 18;
+function drawGroups(lay) {
+  const gg = $("#groups"); gg.replaceChildren();
+  if (!$("#show-groups").checked) return;
+  const milestones = graph.nodes.filter(n => n.kind === "milestone");
+  milestones.forEach((m, i) => {
+    const boxes = lay.nodes.filter(n => n.milestone === m.id && n.id !== m.id).map(n => lay.pos[n.id]).filter(Boolean);
+    if (!boxes.length) return;
+    const x0 = Math.min(...boxes.map(p => p.x)) - GP, y0 = Math.min(...boxes.map(p => p.y)) - GP - GLABEL;
+    const x1 = Math.max(...boxes.map(p => p.x + p.w)) + GP, y1 = Math.max(...boxes.map(p => p.y + p.h)) + GP;
+    const g = el("g", { class: "group", "data-id": m.id, style: `--h:${Math.round(i * 137.5) % 360}` });
+    g.append(el("rect", { x: x0, y: y0, width: x1 - x0, height: y1 - y0, rx: 12 }));
+    g.append(el("text", { x: x0 + 10, y: y0 + 14 }, fitText(`◆ ${m.title}`, x1 - x0 - 20, 12, 600)));
+    gg.append(g);
+  });
 }
 
 // ---------------------------------------------------------------- trace
@@ -986,6 +1013,11 @@ $("#unpin").addEventListener("click", async () => {
 $("#add").addEventListener("click", () => openPanel(null));
 $("#filter-ms").addEventListener("change", () => { render(); fit(); });
 $("#hide-done").addEventListener("change", () => { render(); fit(); });
+$("#show-groups").checked = localStorage.getItem("dag.groups") !== "off";
+$("#show-groups").addEventListener("change", ev => {
+  localStorage.setItem("dag.groups", ev.target.checked ? "on" : "off");
+  if (lastLayout) draw();
+});
 window.addEventListener("beforeunload", ev => { if (dirty) { ev.preventDefault(); ev.returnValue = ""; } });
 
 // ---------------------------------------------------------------- live
